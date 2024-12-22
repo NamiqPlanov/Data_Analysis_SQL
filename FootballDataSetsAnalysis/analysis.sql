@@ -208,3 +208,161 @@ group by
 case 
 when Minute<45 then 'FirstHalf' else 'SecondHalf' end
 order by sum(TotalGoals) desc
+
+
+Analyze the distribution of tournaments by country and city.
+
+select Country,City,Tournament,count(*) as NumberOfGames from results
+group by Country,City,Tournament
+
+
+
+alter table results
+add TotalGoals int
+
+update results
+set TotalGoals = HomeScore+AwayScore
+
+
+
+
+
+Find the tournaments with the highest average goals scored per match.
+
+select Tournament,AvgGoals from(
+select Tournament,avg(TotalGoals) as AvgGoals,
+rank()over(order by avg(TotalGoals) desc) as rn
+from results
+group by Tournament
+)info
+where rn<=3
+
+
+
+
+Determine the most frequent neutral venue for tournaments.
+
+select Tournament,NeutralVenues from (
+select Tournament, sum(cast(Neutral as int)) as NeutralVenues,
+DENSE_RANK() over(order by sum(cast(Neutral as int)) desc) as rn
+from results
+group by Tournament
+) info
+where rn=1
+
+
+
+Rank countries by the number of matches hosted and goals scored.
+
+select Country,sum(cast(HomeWin as int)+cast(AwayWin as int)+cast(NoWinner as int)) as NumberOfMatches,
+sum(TotalGoals) as TotalGoals,DENSE_RANK() over(order by sum(cast(HomeWin as int)+cast(AwayWin as int)+cast(NoWinner as int)) desc) as rnForMatches,
+DENSE_RANK()over(order by sum(TotalGoals) desc) as rnForGoals
+from results
+group by Country
+
+
+
+Find the number of matches played in each year or month.
+
+select year(Date) as Year,Sum(cast(NoWinner as int)+cast(HomeWin as int)+cast(AwayWin as int)) as NumberOfMatches
+from results
+group by year(Date)
+order by year(Date)
+
+
+select case 
+when Month(Date)=1 then 'January'
+when month(Date)=2 then 'February'
+when month(Date)=3 then 'March'
+when month(Date)=4 then 'April'
+when month(Date)=5 then 'May'
+when month(Date)=6 then 'June'
+when month(Date)=7 then 'July'
+when month(Date)=8 then 'August'
+when month(date)=9 then 'September'
+when month(Date)=10 then 'October'
+when month(Date)=11 then 'November'
+else 'December'
+end as Month,
+Sum(cast(NoWinner as int)+cast(HomeWin as int)+cast(AwayWin as int)) as NumberOfMatches
+from results
+group by case 
+when Month(Date)=1 then 'January'
+when month(Date)=2 then 'February'
+when month(Date)=3 then 'March'
+when month(Date)=4 then 'April'
+when month(Date)=5 then 'May'
+when month(Date)=6 then 'June'
+when month(Date)=7 then 'July'
+when month(Date)=8 then 'August'
+when month(date)=9 then 'September'
+when month(Date)=10 then 'October'
+when month(Date)=11 then 'November'
+else 'December'
+end
+order by case 
+when Month(Date)=1 then 'January'
+when month(Date)=2 then 'February'
+when month(Date)=3 then 'March'
+when month(Date)=4 then 'April'
+when month(Date)=5 then 'May'
+when month(Date)=6 then 'June'
+when month(Date)=7 then 'July'
+when month(Date)=8 then 'August'
+when month(date)=9 then 'September'
+when month(Date)=10 then 'October'
+when month(Date)=11 then 'November'
+else 'December'
+end asc
+
+
+
+
+
+
+Analyze trends in scoring patterns over time (e.g., goals per match by year).
+select Year(Date) as Year,Sum(TotalGoals) as TotalGoalsPerYear from results
+group by Year(Date)
+order by Year(Date) asc
+
+
+
+
+
+Determine the busiest months for matches across all tournaments.
+
+select Month,NumberOfMatches from(
+select case 
+when Month(Date)=1 then 'January'
+when month(Date)=2 then 'February'
+when month(Date)=3 then 'March'
+when month(Date)=4 then 'April'
+when month(Date)=5 then 'May'
+when month(Date)=6 then 'June'
+when month(Date)=7 then 'July'
+when month(Date)=8 then 'August'
+when month(date)=9 then 'September'
+when month(Date)=10 then 'October'
+when month(Date)=11 then 'November'
+else 'December'
+end as Month,
+Sum(cast(NoWinner as int)+cast(HomeWin as int)+cast(AwayWin as int)) as NumberOfMatches,
+DENSE_RANK() over(order by Sum(cast(NoWinner as int)+cast(HomeWin as int)+cast(AwayWin as int)) desc) as rank
+from results
+group by case 
+when Month(Date)=1 then 'January'
+when month(Date)=2 then 'February'
+when month(Date)=3 then 'March'
+when month(Date)=4 then 'April'
+when month(Date)=5 then 'May'
+when month(Date)=6 then 'June'
+when month(Date)=7 then 'July'
+when month(Date)=8 then 'August'
+when month(date)=9 then 'September'
+when month(Date)=10 then 'October'
+when month(Date)=11 then 'November'
+else 'December'
+end)info
+where rank<=3
+
+
