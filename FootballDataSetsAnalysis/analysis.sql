@@ -256,7 +256,7 @@ Rank countries by the number of matches hosted and goals scored.
 
 select Country,sum(cast(HomeWin as int)+cast(AwayWin as int)+cast(NoWinner as int)) as NumberOfMatches,
 sum(TotalGoals) as TotalGoals,DENSE_RANK() over(order by sum(cast(HomeWin as int)+cast(AwayWin as int)+cast(NoWinner as int)) desc) as rnForMatches,
-DENSE_RANK()over(order by sum(TotalGoals) desc) as rnForGoals
+RANK()over(order by sum(TotalGoals) desc) as rnForGoals
 from results
 group by Country
 
